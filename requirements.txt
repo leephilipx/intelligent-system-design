@@ -4,6 +4,8 @@ pandas
 matplotlib
 tqdm
 opencv-python
+imutils
 tensorflow
 
 # mglearn
+# mtcnn

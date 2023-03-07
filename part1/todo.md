@@ -26,7 +26,7 @@ Face recognition:
 - [ ] Fit all models onto own dataset
 
 Integration:
-- [ ] Threaded VideoCapture and OpenCV window
+- [ ] Asynchorous VideoCapture and OpenCV window
 - [ ] Axial rotation along face symmetry line (needs eye keypoints)
-- [ ] Integrate all components
+- [ ] Integrate all components with labels
 - [ ] Add keyboard toggle functionality
