@@ -1,0 +1,9 @@
+scikit-learn
+numpy
+pandas
+matplotlib
+tqdm
+opencv-python
+tensorflow
+
+# mglearn
