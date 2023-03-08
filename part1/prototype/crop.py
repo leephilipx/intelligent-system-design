@@ -1,6 +1,7 @@
 import cv2
 import glob, os
 import numpy as np
+from tqdm import tqdm
 
 
 class ResNet10SSD:
@@ -41,10 +42,10 @@ def draw_bbox(frame, bbox_list):
 
 def main(name):
     
-    image_list = glob.glob(f'../face-rec/ee4208 faces/{name}/**')
+    image_list = sorted(glob.glob(f'../face-rec/ee4208 faces/{name}/**'))
     face_det = ResNet10SSD('models/res10_ssd_deploy.prototxt.txt', 'models/res10_300x300_ssd_iter_140000.caffemodel') 
 
-    for i, im in enumerate(image_list):
+    for i, im in tqdm(enumerate(image_list), desc=f'cropping faces from {name}', total=len(image_list)):
 
         dir_name = os.path.dirname(im).replace('ee4208 faces', 'output')
         os.makedirs(dir_name, exist_ok=True)
@@ -52,21 +53,23 @@ def main(name):
         img = cv2.imread(im)
         h, w = img.shape[:2]
 
-        bbox_list = face_det.detect_faces(img, w, h, score=0.8)
+        bbox_list = face_det.detect_faces(img, w, h, score=0.5)
 
-        img = draw_bbox(img, bbox_list)
-        cv2.imshow('image preview', img)
-        cv2.waitKey(0)
+        # img = draw_bbox(img, bbox_list)
+        # cv2.imshow('image preview', img)
+        # cv2.waitKey(0)
 
-        bbox = bbox_list[0]
-        x1, y1, x2, y2 = bbox[0], bbox[1], bbox[2], bbox[3]
-        cropped = img[y1:y2, x1:x2]
-        cropped = cv2.resize(cropped, (80,100))
-        cv2.imwrite(os.path.join(dir_name, f'{i}.png'),cropped)
+        for j, bbox in enumerate(bbox_list):
+            x1, y1, x2, y2 = bbox[0], bbox[1], bbox[2], bbox[3]
+            cropped = img[y1:y2, x1:x2]
+            try:
+                cropped = cv2.resize(cropped, (80,100))
+                cv2.imwrite(os.path.join(dir_name, f'{i}_{j}.png'),cropped)
+            except:
+                print(f'cropped failed @ {i}_{j}.png')
 
 
-main('honey')
-main('jane')
-# main('philip')
-main('veronica')
-main('wai_yeong')
+# folders = ['honey', 'jane', 'philip', 'veronica', 'wai_yeong', 'unknown']
+
+# for folder in folders:
+#     main(folder)
