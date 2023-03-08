@@ -65,8 +65,8 @@ def main(name):
         cv2.imwrite(os.path.join(dir_name, f'{i}.png'),cropped)
 
 
-# main('honey')
-# main('jane')
-# main(philip)
+main('honey')
+main('jane')
+# main('philip')
 main('veronica')
-# main('wai_yeong')
+main('wai_yeong')
