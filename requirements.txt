@@ -6,6 +6,4 @@ tqdm
 opencv-python
 imutils
 tensorflow
-
-# mglearn
-# mtcnn
+mtcnn
