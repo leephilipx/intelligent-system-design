@@ -59,17 +59,25 @@ def main(name):
         # cv2.imshow('image preview', img)
         # cv2.waitKey(0)
 
-        for j, bbox in enumerate(bbox_list):
-            x1, y1, x2, y2 = bbox[0], bbox[1], bbox[2], bbox[3]
+        if len(bbox_list) == 0:
+            print(f'>> no face detected @ {i}_x.png')
+            continue
+
+        for j, bbox in enumerate(bbox_list): 
+            x1, y1, x2, y2 = max(bbox[0], 0), max(bbox[1], 0), min(bbox[2], w), min(bbox[3], h)
             cropped = img[y1:y2, x1:x2]
             try:
-                cropped = cv2.resize(cropped, (80,100))
+                cropped = cv2.resize(cropped, (75,100))
                 cv2.imwrite(os.path.join(dir_name, f'{i}_{j}.png'),cropped)
             except:
-                print(f'cropped failed @ {i}_{j}.png')
+                print(f'>> cropped failed @ {i}_{j}.png with bbox {bbox}')
 
 
-# folders = ['honey', 'jane', 'philip', 'veronica', 'wai_yeong', 'unknown']
+if __name__ == '__main__':
 
-# for folder in folders:
-#     main(folder)
+    main(name='honey')
+    main(name='jane')
+    main(name='philip')
+    main(name='veronica')
+    main(name='wai_yeong')
+    main(name='unknown')
