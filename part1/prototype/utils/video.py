@@ -37,7 +37,6 @@ class VideoCaptureAsync:
         self.started = False
         self.read_lock = threading.Lock()
 
-
     def start(self):
         if self.started:
             print('>> Threaded video capturing has already been started.')

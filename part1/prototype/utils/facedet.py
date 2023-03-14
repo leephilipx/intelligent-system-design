@@ -1,8 +1,10 @@
 import cv2
 import numpy as np
-import mtcnn
+# import mtcnn
 
-'''For all classes in this script, the detect_faces method should return a list of tuples (x, y, w, h)'''
+from .helper import xywh_to_xyxy
+
+'''For all classes in this script, the detect_faces method should return a list of tuples (x1, y1, x2, y2)'''
 
 
 class HaarCascade:
@@ -20,7 +22,7 @@ class HaarCascade:
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         faces = self.face_cascade.detectMultiScale(gray, self._scale_factor, self._min_neighbors)
 
-        return faces
+        return xywh_to_xyxy(faces)
     
 
 class ResNet10SSD:
@@ -45,7 +47,7 @@ class ResNet10SSD:
             confidence = faces[0, 0, i, 2]
             if confidence > score:
                 bbox = (faces[0, 0, i, 3:7] * self._resize_wh).astype('int')
-                bbox_list.append(np.array([bbox[0], bbox[1], bbox[2]-bbox[0], bbox[3]-bbox[1]]))
+                bbox_list.append(bbox)
 
         return bbox_list
     
