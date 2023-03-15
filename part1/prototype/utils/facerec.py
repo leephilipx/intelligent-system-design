@@ -26,8 +26,8 @@ class MahalanobisClassifier:
     def __init__(self, path):
         
         self._mu_fj = np.load(path)['mu_fj']
-        self._n_classes = self._mu_fj.shape[0]
         self._VI = np.load(path)['inv_sigma_w_f']
+        self._n_classes = self._mu_fj.shape[0]
 
     def predict(self, X, multiplier=1.5):
 
@@ -42,8 +42,8 @@ class MahalanobisClassifier:
         y_preds = np.array(y_preds)
         y_dist = np.array(y_dist)
 
-        # indices = (y_dist.mean(axis=1) - y_dist.min(axis=1)) > multiplier*y_dist.std(axis=1)
-        # y_preds[indices] = -1
+        indices = (y_dist.mean(axis=1) - y_dist.min(axis=1)) > multiplier*y_dist.std(axis=1)
+        y_preds[indices] = -1
 
         return y_preds
     

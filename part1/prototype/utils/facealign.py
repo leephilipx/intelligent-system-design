@@ -129,7 +129,8 @@ class FaceAligner:
         feature_list = []
 
         for (x1, y1, x2, y2) in bbox_list:
-            aligned_face = self.fa.align(gray, gray, dlib.rectangle(x1, y1, x2, y2))
+            aligned_face = self.fa.align(frame, gray, dlib.rectangle(x1, y1, x2, y2))
+            aligned_face = cv2.cvtColor(aligned_face, cv2.COLOR_BGR2GRAY)
             feature_list.append(aligned_face.flatten())
         
         return np.array(feature_list)

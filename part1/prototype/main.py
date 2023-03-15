@@ -28,6 +28,7 @@ def main():
     ret, frame = cap.read()
     for fd in face_dets: fd.detect_faces(frame)
     for fr in face_recs: fr.predict(np.zeros((1, 60)))
+    print('>> Models warmed up successfully')
 
     # Pre-select models and thresholds
     fd_selector, fr_selector = 1, 0
@@ -42,6 +43,7 @@ def main():
 
         # Face detection, then face alignment, cropping and preprocessing
         bbox_list = face_dets[fd_selector].detect_faces(frame, score=0.5)
+        bbox_list = utils.helper.bbox_correction(bbox_list, max_w=W, max_h=H)
         features = face_align.align_crop_preprocess_faces(frame, bbox_list)
 
         # Feature extraction, then face recognition
