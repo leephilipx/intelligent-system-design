@@ -11,16 +11,11 @@ class PCA:
     def __init__(self, path):
         
         self.pca = joblib.load(path)
-        # self._VI = np.diag(1 / self.pca.explained_variance_[:n_components])
 
     def transform(self, X):
 
-        if X is None: return None
+        if not len(X): return X
         return self.pca.transform(X)
-    
-    # def get_VI(self):
-
-    #     return self._VI
     
 
 class MahalanobisClassifier:
@@ -36,8 +31,7 @@ class MahalanobisClassifier:
 
     def predict(self, X, multiplier=1.5):
 
-        if X is None: return np.empty((0,), dtype=int)
-
+        if not len(X): return X
         y_preds, y_dist = [], []
 
         for i in range(len(X)):
@@ -64,7 +58,7 @@ class KerasClassifier:
 
     def predict(self, X, score=0.5):
 
-        if X is None: return np.empty((0,), dtype=int)
+        if not len(X): return X
 
         y_preds = self.model.predict(X, verbose=0)
         indices = np.max(y_preds, axis=1) < score

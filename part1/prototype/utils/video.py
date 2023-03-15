@@ -27,7 +27,7 @@ class FPS:
 class VideoCaptureAsync:
 
     '''Class to asynchronously read frames from a video feed. See sample usage below.'''
-    '''Reference: https://github.com/gilbertfrancois/video-capture-async'''
+    '''Acknowledgement: This code is adapted from https://github.com/gilbertfrancois/video-capture-async'''
 
     def __init__(self, src=0, special_kwargs=[]):
         print(f'>> Initialising video capture: {src}')

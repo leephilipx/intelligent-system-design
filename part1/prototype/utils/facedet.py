@@ -11,7 +11,8 @@ class HaarCascade:
 
     '''This class is for the Haar Cascade model from OpenCV.'''
 
-    def __init__(self, path, scale_factor=1.1, min_neighbors=3):
+    def __init__(self, path='artifacts/detection/haarcascade_frontalface_default.xml',
+                 scale_factor=1.1, min_neighbors=3):
         
         self.face_cascade = cv2.CascadeClassifier(path)
         self._scale_factor = scale_factor
@@ -29,7 +30,9 @@ class ResNet10SSD:
 
     '''This class is for the ResNet10 SSD model from OpenCV DNN module.'''
 
-    def __init__(self, config_path, model_path, w, h):
+    def __init__(self, config_path='artifacts/detection/res10_ssd_deploy.prototxt.txt',
+                 model_path='artifacts/detection/res10_300x300_ssd_iter_140000.caffemodel',
+                 w=1280, h=720):
 
         self.net = cv2.dnn.readNetFromCaffe(config_path, model_path)
         self._resize_wh = np.array([w, h, w, h])
@@ -62,6 +65,7 @@ class ResNet10SSD:
     
 #     def detect_faces(self, frame, score=0.5):
 
-#         faces = self.detector.detect_faces(frame)
+#         faces = self.detector.detect_faces(frame[..., ::-1])
+#         faces = [np.array(res['box']) for res in faces if res['confidence'] > score]
 
-#         return [res['box'] for res in faces if res['confidence'] > score]
+#         return xywh_to_xyxy(faces)

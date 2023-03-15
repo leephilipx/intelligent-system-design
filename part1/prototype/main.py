@@ -2,7 +2,7 @@ import cv2, traceback
 import numpy as np
 
 import utils.draw, utils.helper, utils.video
-import utils.facedet, utils.facerec
+import utils.facedet, utils.facealign, utils.facerec
 
 W, H = 1280, 720
 
@@ -11,22 +11,28 @@ def main():
 
     # Initialise models
     face_dets = [
-        utils.facedet.HaarCascade('models/haarcascade_frontalface_default.xml', scale_factor=1.3, min_neighbors=3),
-        utils.facedet.ResNet10SSD('models/res10_ssd_deploy.prototxt.txt', 'models/res10_300x300_ssd_iter_140000.caffemodel', w=W, h=H)
+        utils.facedet.HaarCascade(scale_factor=1.3, min_neighbors=3),
+        utils.facedet.ResNet10SSD(w=W, h=H)
     ]
-    face_dr = utils.facerec.PCA('models/sk_pca_nclass_5.joblib')
-    face_rec = utils.facerec.MahalanobisClassifier('models/wfj_pca_nclass_5.npz')
-    # face_rec = utils.facerec.KerasClassifier('models/keras_nclass_5')
-
-    # Warmup models and pre-select face detector
-    ret, frame = cap.read()
-    for fd in face_dets: fd.detect_faces(frame)
-    face_rec.predict(np.zeros((1, 60)))
-    fd_selector = 1
-    fr_multiplier = 1.5
+    face_align = utils.facealign.FaceAligner()
+    face_dr = utils.facerec.PCA('artifacts/classification/sk_pca_nclass_5.joblib')
+    face_recs = [
+        utils.facerec.MahalanobisClassifier('artifacts/classification/wfj_pca_nclass_5.npz'),
+        utils.facerec.KerasClassifier('artifacts/classification/keras_nclass_5')
+    ]
 
     # Initialise FPS counter
     fps = utils.video.FPS()
+
+    # Warmup models
+    ret, frame = cap.read()
+    for fd in face_dets: fd.detect_faces(frame)
+    for fr in face_recs: fr.predict(np.zeros((1, 60)))
+
+    # Pre-select models and thresholds
+    fd_selector, fr_selector = 1, 0
+    FR_ORIGINAL = [1.5, 0.8]
+    fr_threshold = [x for x in FR_ORIGINAL]
 
     while True:
         
@@ -34,22 +40,20 @@ def main():
         ret, frame = cap.read()
         if not ret: break
 
-        # Face detection
+        # Face detection, then face alignment, cropping and preprocessing
         bbox_list = face_dets[fd_selector].detect_faces(frame, score=0.5)
-        bbox_list = utils.helper.bbox_correction(bbox_list, max_w=W, max_h=H)
+        features = face_align.align_crop_preprocess_faces(frame, bbox_list)
 
-        # Crop faces, preprocess faces, and perform face recognition
-        face_list = utils.helper.crop_faces(frame, bbox_list)
-        features = utils.helper.preprocess_faces(face_list)
+        # Feature extraction, then face recognition
         features = face_dr.transform(features)
-        labels = face_rec.predict(features, multiplier=fr_multiplier)
-        # labels = face_rec.predict(features, score=0.8)
+        labels = face_recs[fr_selector].predict(features, fr_threshold[fr_selector])
 
         # Draw results onto frame and display
         utils.draw.draw_bbox(frame, bbox_list, labels)
         utils.draw.draw_text(frame, f'FPS: {fps.get():.0f}', index=0)
         utils.draw.draw_text(frame, f'Face detector: {face_dets[fd_selector].__class__.__name__}', index=1)
-        utils.draw.draw_text(frame, f'Face recognizer: {face_rec.__class__.__name__} (threshold={fr_multiplier:.2f})', index=2)
+        utils.draw.draw_text(frame, f'Face recognizer: {face_recs[fr_selector].__class__.__name__} ' + \
+                             f'(threshold={fr_threshold[fr_selector]:.2f})', index=2)
         cv2.imshow('Online Face Detection and Recognition', frame)
         
         # Keyboard input
@@ -58,10 +62,13 @@ def main():
             break
         elif key == ord('d'):  # Toggle face detector
             fd_selector = (fd_selector + 1) % len(face_dets)
-        elif key == ord('m'):  # Increase Mahalanobis multiplier
-            fr_multiplier += 0.05
-        elif key == ord('n'):  # Decrease Mahalanobis multiplier
-            fr_multiplier -= 0.05
+        elif key == ord('r'):  # Toggle face recognizer
+            fr_selector = (fr_selector + 1) % len(face_recs)
+            fr_threshold[fr_selector] = FR_ORIGINAL[fr_selector]
+        elif key == ord('m'):  # Increase face recognition threshold
+            fr_threshold[fr_selector] += 0.05
+        elif key == ord('n'):  # Decrease face recognition threshold
+            fr_threshold[fr_selector] -= 0.05
 
         fps.log()
 
