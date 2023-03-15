@@ -4,7 +4,7 @@ import numpy as np
 from tqdm import tqdm
 
 
-class ResNet10SSD:
+class ResNet10SSDModified:
 
     '''This class is for the ResNet10 SSD model from OpenCV DNN module.'''
 
@@ -42,8 +42,8 @@ def draw_bbox(frame, bbox_list):
 
 def main(name):
     
-    image_list = sorted(glob.glob(f'../face-rec/ee4208 faces/{name}/**'))
-    face_det = ResNet10SSD('models/res10_ssd_deploy.prototxt.txt', 'models/res10_300x300_ssd_iter_140000.caffemodel') 
+    image_list = sorted(glob.glob(f'ee4208 faces/{name}/**'))
+    face_det = ResNet10SSDModified('../prototype/models/res10_ssd_deploy.prototxt.txt', '../prototype/models/res10_300x300_ssd_iter_140000.caffemodel') 
 
     for i, im in tqdm(enumerate(image_list), desc=f'cropping faces from {name}', total=len(image_list)):
 

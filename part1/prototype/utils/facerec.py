@@ -1,6 +1,7 @@
 import joblib
 import numpy as np
 from scipy.spatial.distance import mahalanobis
+import tensorflow as tf
 
 
 class PCA:
@@ -48,6 +49,26 @@ class MahalanobisClassifier:
         y_dist = np.array(y_dist)
 
         indices = (y_dist.mean(axis=1) - y_dist.min(axis=1)) > multiplier*y_dist.std(axis=1)
+        y_preds[indices] = -1
+
+        return y_preds
+    
+
+class KerasClassifier:
+
+    '''Loads the Keras classifier from the given path.'''
+
+    def __init__(self, path):
+
+        self.model = tf.keras.models.load_model(path)
+
+    def predict(self, X, score=0.5):
+
+        if X is None: return np.empty((0,), dtype=int)
+
+        y_preds = self.model.predict(X, verbose=0)
+        indices = np.max(y_preds, axis=1) < score
+        y_preds = np.argmax(y_preds, axis=1)
         y_preds[indices] = -1
 
         return y_preds

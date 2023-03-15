@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from imutils.face_utils import FaceAligner, rect_to_bb
 
 
 def xywh_to_xyxy(bbox_list):
@@ -17,6 +18,25 @@ def bbox_correction(bbox_list, max_w=1280, max_h=720):
         bbox_list[i] = (max(0, x1), max(0, y1), min(max_w, x2), min(max_h, y2))
 
     return bbox_list
+
+
+def align_and_crop_faces(frame, bbox_list, size=(75, 100)):
+    
+    '''Align and crop faces from the given frame using the given bounding boxes'''
+
+    face_list = []
+    fa = FaceAligner(cv2.CascadeClassifier('models/haarcascade_frontalface_default.xml'), desiredFaceWidth=size[0], desiredFaceHeight=size[1])
+    for x1, y1, x2, y2 in bbox_list:
+        face = frame[y1:y2, x1:x2]
+        face = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY)
+        face = fa.align(frame, face, rect_to_bb((x1, y1, x2, y2)))
+        face_list.append(face)
+
+    if len(face_list) == 0: # No face detected
+        return None
+
+    return np.array(face_list)
+
 
 
 def crop_faces(frame, bbox_list):

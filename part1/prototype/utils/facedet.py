@@ -11,7 +11,7 @@ class HaarCascade:
 
     '''This class is for the Haar Cascade model from OpenCV.'''
 
-    def __init__(self, path, scale_factor=1.3, min_neighbors=3):
+    def __init__(self, path, scale_factor=1.1, min_neighbors=3):
         
         self.face_cascade = cv2.CascadeClassifier(path)
         self._scale_factor = scale_factor

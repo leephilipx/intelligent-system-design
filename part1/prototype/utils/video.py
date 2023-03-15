@@ -3,6 +3,8 @@ import cv2
 import time
 
 
+
+
 class FPS:
 
     '''Class to calculate FPS of a video feed. Uses exponential weighting to smooth FPS values. See sample usage below.'''
@@ -25,6 +27,7 @@ class FPS:
 class VideoCaptureAsync:
 
     '''Class to asynchronously read frames from a video feed. See sample usage below.'''
+    '''Reference: https://github.com/gilbertfrancois/video-capture-async'''
 
     def __init__(self, src=0, special_kwargs=[]):
         print(f'>> Initialising video capture: {src}')

@@ -1,4 +1,5 @@
 import cv2, traceback
+import numpy as np
 
 import utils.draw, utils.helper, utils.video
 import utils.facedet, utils.facerec
@@ -15,10 +16,12 @@ def main():
     ]
     face_dr = utils.facerec.PCA('models/sk_pca_nclass_5.joblib', n_components=60)
     face_rec = utils.facerec.MahalanobisClassifier('models/mu_fj_nclass_5.npz', VI=face_dr.get_VI())
+    # face_rec = utils.facerec.KerasClassifier('models/keras_nclass_5')
 
     # Warmup models and pre-select face detector
     ret, frame = cap.read()
     for fd in face_dets: fd.detect_faces(frame)
+    face_rec.predict(np.zeros((1, 60)))
     fd_selector = 1
     fr_multiplier = 1.5
 
@@ -40,13 +43,14 @@ def main():
         features = utils.helper.preprocess_faces(face_list)
         features = face_dr.transform(features)
         labels = face_rec.predict(features, multiplier=fr_multiplier)
+        # labels = face_rec.predict(features, score=0.5)
 
         # Draw results onto frame and display
         utils.draw.draw_bbox(frame, bbox_list, labels)
         utils.draw.draw_text(frame, f'FPS: {fps.get():.0f}', index=0)
         utils.draw.draw_text(frame, f'Face detector: {face_dets[fd_selector].__class__.__name__}', index=1)
-        utils.draw.draw_text(frame, f'Mahalanobis multiplier: {fr_multiplier:.2f}', index=2)
-        cv2.imshow('Async Video Feed', frame)
+        utils.draw.draw_text(frame, f'Face recognizer: {face_rec.__class__.__name__} (threshold={fr_multiplier:.2f})', index=2)
+        cv2.imshow('Online Face Detection and Recognition', frame)
         
         # Keyboard input
         key = cv2.waitKey(1)
