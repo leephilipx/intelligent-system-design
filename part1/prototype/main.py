@@ -14,8 +14,8 @@ def main():
         utils.facedet.HaarCascade('models/haarcascade_frontalface_default.xml', scale_factor=1.3, min_neighbors=3),
         utils.facedet.ResNet10SSD('models/res10_ssd_deploy.prototxt.txt', 'models/res10_300x300_ssd_iter_140000.caffemodel', w=W, h=H)
     ]
-    face_dr = utils.facerec.PCA('models/sk_pca_nclass_5.joblib', n_components=60)
-    face_rec = utils.facerec.MahalanobisClassifier('models/mu_fj_nclass_5.npz', VI=face_dr.get_VI())
+    face_dr = utils.facerec.PCA('models/sk_pca_nclass_5.joblib')
+    face_rec = utils.facerec.MahalanobisClassifier('models/wfj_pca_nclass_5.npz')
     # face_rec = utils.facerec.KerasClassifier('models/keras_nclass_5')
 
     # Warmup models and pre-select face detector
@@ -43,7 +43,7 @@ def main():
         features = utils.helper.preprocess_faces(face_list)
         features = face_dr.transform(features)
         labels = face_rec.predict(features, multiplier=fr_multiplier)
-        # labels = face_rec.predict(features, score=0.5)
+        # labels = face_rec.predict(features, score=0.8)
 
         # Draw results onto frame and display
         utils.draw.draw_bbox(frame, bbox_list, labels)

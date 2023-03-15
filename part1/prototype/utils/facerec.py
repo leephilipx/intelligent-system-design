@@ -8,19 +8,19 @@ class PCA:
 
     '''Loads the PCA model from the given path.'''
 
-    def __init__(self, path, n_components):
+    def __init__(self, path):
         
         self.pca = joblib.load(path)
-        self._VI = np.diag(1 / self.pca.explained_variance_[:n_components])
+        # self._VI = np.diag(1 / self.pca.explained_variance_[:n_components])
 
     def transform(self, X):
 
         if X is None: return None
         return self.pca.transform(X)
     
-    def get_VI(self):
+    # def get_VI(self):
 
-        return self._VI
+    #     return self._VI
     
 
 class MahalanobisClassifier:
@@ -28,11 +28,11 @@ class MahalanobisClassifier:
     '''Loads the Mahalanobis classifier from the given path.'''
     '''The multiplier is used to determine the threshold for the Mahalanobis distance.'''
 
-    def __init__(self, path, VI):
+    def __init__(self, path):
         
         self._mu_fj = np.load(path)['mu_fj']
         self._n_classes = self._mu_fj.shape[0]
-        self._VI = VI
+        self._VI = np.load(path)['inv_sigma_w_f']
 
     def predict(self, X, multiplier=1.5):
 
@@ -48,8 +48,8 @@ class MahalanobisClassifier:
         y_preds = np.array(y_preds)
         y_dist = np.array(y_dist)
 
-        indices = (y_dist.mean(axis=1) - y_dist.min(axis=1)) > multiplier*y_dist.std(axis=1)
-        y_preds[indices] = -1
+        # indices = (y_dist.mean(axis=1) - y_dist.min(axis=1)) > multiplier*y_dist.std(axis=1)
+        # y_preds[indices] = -1
 
         return y_preds
     
