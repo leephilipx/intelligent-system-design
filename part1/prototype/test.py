@@ -5,6 +5,8 @@ import utils.draw, utils.helper, utils.video
 import utils.facedet, utils.facealign, utils.facerec
 
 W, H = 1280, 720
+MODE = 'lda'
+
 
 
 def main():
@@ -16,12 +18,15 @@ def main():
     # face_det = utils.facedet.HaarCascade(scale_factor=1.3, min_neighbors=3)
     face_det = utils.facedet.ResNet10SSD(w=W, h=H)
     face_align = utils.facealign.FaceAligner()
-    face_dr = utils.facerec.PCA('artifacts/classification/sk_pca_nclass_5.joblib')
-    # face_dr = utils.facerec.FisherFace('artifacts/classification/sk_pca_nclass_5.joblib',
-    #                                    'artifacts/classification/sk_lda_nclass_5.joblib')
-    face_rec, fr_threshold = utils.facerec.MahalanobisDist('artifacts/classification/wfj_pca_nclass_5.npz'), 1.5
-    # face_rec, fr_threshold = utils.facerec.KerasMLP('artifacts/classification/keras_nclass_5'), 0.7
-    # face_rec, fr_threshold = utils.facerec.TfLiteMLP('artifacts/classification/keras_nclass_5.tflite'), 0.7
+    if MODE == 'pca':
+        face_dr = utils.facerec.PCA('artifacts/classification/sk_pca_nclass_5.joblib')
+    elif MODE == 'lda':
+        face_dr = utils.facerec.FisherFace('artifacts/classification/sk_pca_nclass_5.joblib',
+                                           'artifacts/classification/sk_lda_nclass_5.joblib')
+    # face_rec, fr_threshold = utils.facerec.MahalanobisDistance(f'artifacts/classification/wfj_{MODE}_nclass_5.npz'), 2.0
+    # face_rec, fr_threshold = utils.facerec.TfLiteMLP(f'artifacts/classification/keras_{MODE}_nclass_5.tflite'), 0.7
+    face_rec, fr_threshold = utils.facerec.LogisticRegression(f'artifacts/classification/logreg_{MODE}_nclass_5.joblib'), 0.7
+    # face_rec, fr_threshold = utils.facerec.SupportVectorMachine(f'artifacts/classification/svm_{MODE}_nclass_5.joblib'), 0.0
 
     # Warmup models
     ret, frame = cap.read()

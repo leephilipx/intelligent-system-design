@@ -31,12 +31,12 @@ class FisherFace:
     def transform(self, X):
 
         if not len(X): return X
-        return self.lda.transform(self.pca.transform(X))
+        return self.lda.transform(self.pca.transform(X)).astype(np.float32)
     
 
 ## Face Recognition Classifiers
 
-class MahalanobisDist:
+class MahalanobisDistance:
 
     '''Loads the Mahalanobis classifier from the given path.'''
     '''The multiplier is used to determine the threshold for the Mahalanobis distance.'''
@@ -112,3 +112,33 @@ class TfLiteMLP:
         y_preds[indices] = -1
 
         return y_preds
+
+
+class LogisticRegression:
+
+    def __init__(self, path):
+
+        self.model = joblib.load(path)
+
+    def predict(self, X, score=0.5):
+
+        if not len(X): return X
+
+        y_preds = self.model.predict_proba(X)
+        indices = np.max(y_preds, axis=1) < score
+        y_preds = np.argmax(y_preds, axis=1)
+        y_preds[indices] = -1
+
+        return y_preds
+    
+
+class SupportVectorMachine:
+
+    def __init__(self, path):
+
+        self.model = joblib.load(path)
+
+    def predict(self, X, score=0.5):
+
+        if not len(X): return X
+        return self.model.predict(X)

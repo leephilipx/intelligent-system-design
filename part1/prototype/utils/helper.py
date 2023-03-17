@@ -38,7 +38,7 @@ def preprocess_to_features(face_list, size=(75, 100)):
     for face in face_list:
         face = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY)
         face = cv2.resize(face, size)
-        face = face.astype('float32') / 255
+        face = face.astype(np.float32) / 255
         feature_list.append(face.flatten())
 
     return np.array(feature_list)

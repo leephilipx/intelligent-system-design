@@ -5,6 +5,8 @@ import utils.draw, utils.helper, utils.video
 import utils.facedet, utils.facealign, utils.facerec
 
 W, H = 1280, 720
+MODE = 'lda'
+
 
 
 def main(cap):
@@ -17,13 +19,16 @@ def main(cap):
         utils.facedet.ResNet10SSD(w=W, h=H)
     ]
     face_align = utils.facealign.FaceAligner()
-    face_dr = utils.facerec.PCA('artifacts/classification/sk_pca_nclass_5.joblib')
-    # face_dr = utils.facerec.FisherFace('artifacts/classification/sk_pca_nclass_5.joblib',
-    #                                    'artifacts/classification/sk_lda_nclass_5.joblib')
+    if MODE == 'pca':
+        face_dr = utils.facerec.PCA('artifacts/classification/sk_pca_nclass_5.joblib')
+    elif MODE == 'lda':
+        face_dr = utils.facerec.FisherFace('artifacts/classification/sk_pca_nclass_5.joblib',
+                                           'artifacts/classification/sk_lda_nclass_5.joblib')
     face_recs = [
-        utils.facerec.MahalanobisDist('artifacts/classification/wfj_pca_nclass_5.npz'),
-        # utils.facerec.KerasMLP('artifacts/classification/keras_nclass_5'),
-        utils.facerec.TfLiteMLP('artifacts/classification/keras_nclass_5.tflite')
+        utils.facerec.MahalanobisDistance(f'artifacts/classification/wfj_{MODE}_nclass_5.npz'),
+        utils.facerec.TfLiteMLP(f'artifacts/classification/keras_{MODE}_nclass_5.tflite'),
+        utils.facerec.LogisticRegression(f'artifacts/classification/logreg_{MODE}_nclass_5.joblib'),
+        utils.facerec.SupportVectorMachine(f'artifacts/classification/svm_{MODE}_nclass_5.joblib'),
     ]
 
     # Initialise FPS counter
@@ -37,7 +42,7 @@ def main(cap):
 
     # Pre-select models and thresholds
     fd_selector, fr_selector = 1, 0
-    FR_ORIGINAL = [1.5, 0.7, 0.7]
+    FR_ORIGINAL = [2.0, 0.7, 0.7, 0.0]
     fr_threshold = [x for x in FR_ORIGINAL]
 
     while True:
@@ -58,8 +63,8 @@ def main(cap):
         # Draw results onto frame and display
         utils.draw.draw_bbox(frame, bbox_list, labels)
         utils.draw.draw_text(frame, f'FPS: {fps.get():.0f}', index=0)
-        utils.draw.draw_text(frame, f'Face detector: {face_dets[fd_selector].__class__.__name__}', index=1)
-        utils.draw.draw_text(frame, f'Face recognizer: {face_recs[fr_selector].__class__.__name__} ' + \
+        utils.draw.draw_text(frame, f'[D] Face detector: {face_dets[fd_selector].__class__.__name__}', index=1)
+        utils.draw.draw_text(frame, f'[R] Face recognizer: {face_recs[fr_selector].__class__.__name__} ' + \
                              f'(threshold={fr_threshold[fr_selector]:.2f})', index=2)
         cv2.imshow('Online Face Detection and Recognition', frame)
         
