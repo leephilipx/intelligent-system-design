@@ -1,7 +1,5 @@
 import threading
-import cv2
-import time
-
+import cv2, time, glob
 
 
 
@@ -22,6 +20,28 @@ class FPS:
         new_fps =  1.0 / (time.time() - self._start + self._epsilon)
         self._fps = self._fps * self._weight + new_fps * (1-self._weight)
         return self._fps
+
+
+
+class TestImagesStream:
+
+    '''Selects images from a folder and returns them as a video stream.'''
+
+    def __init__(self, path, W, H):
+
+        self.images = sorted(glob.glob(path + '/*'))
+        self.index, self.max_index = -2, len(self.images)
+        assert self.max_index > 0, f'>> No images found in {path}'
+        self.size = (W, H)
+        print(f'>> Found {self.max_index} images in {path} ...')
+
+    def read(self):
+
+        self.index = (self.index + 1) % self.max_index
+        image = cv2.imread(self.images[self.index])
+        image = cv2.resize(image, self.size)
+        return True, image
+
 
 
 class VideoCaptureAsync:
@@ -69,6 +89,7 @@ class VideoCaptureAsync:
 
     def __exit__(self, exec_type, exc_value, traceback):
         self.cap.release()
+
 
 
 if __name__ == '__main__':

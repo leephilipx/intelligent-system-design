@@ -7,7 +7,9 @@ import utils.facedet, utils.facealign, utils.facerec
 W, H = 1280, 720
 
 
-def main():
+def main(cap):
+    
+    print('>> Initializing and warming up models ...')
 
     # Initialise models
     face_dets = [
@@ -16,9 +18,12 @@ def main():
     ]
     face_align = utils.facealign.FaceAligner()
     face_dr = utils.facerec.PCA('artifacts/classification/sk_pca_nclass_5.joblib')
+    # face_dr = utils.facerec.FisherFace('artifacts/classification/sk_pca_nclass_5.joblib',
+    #                                    'artifacts/classification/sk_lda_nclass_5.joblib')
     face_recs = [
-        utils.facerec.MahalanobisClassifier('artifacts/classification/wfj_pca_nclass_5.npz'),
-        utils.facerec.KerasClassifier('artifacts/classification/keras_nclass_5')
+        utils.facerec.MahalanobisDist('artifacts/classification/wfj_pca_nclass_5.npz'),
+        # utils.facerec.KerasMLP('artifacts/classification/keras_nclass_5'),
+        utils.facerec.TfLiteMLP('artifacts/classification/keras_nclass_5.tflite')
     ]
 
     # Initialise FPS counter
@@ -27,12 +32,12 @@ def main():
     # Warmup models
     ret, frame = cap.read()
     for fd in face_dets: fd.detect_faces(frame)
-    for fr in face_recs: fr.predict(np.zeros((1, 60)))
+    for fr in face_recs: fr.predict(face_dr.transform(np.zeros((1, 7500), dtype=np.float32)))
     print('>> Models warmed up successfully')
 
     # Pre-select models and thresholds
     fd_selector, fr_selector = 1, 0
-    FR_ORIGINAL = [1.5, 0.8]
+    FR_ORIGINAL = [1.5, 0.7, 0.7]
     fr_threshold = [x for x in FR_ORIGINAL]
 
     while True:
@@ -85,7 +90,7 @@ if __name__ == '__main__':
 
     # Main loop
     try:
-        main()
+        main(cap=cap)
     except KeyboardInterrupt:
         print('>> Keyboard interrupt detected. Exiting ...')
     except:
