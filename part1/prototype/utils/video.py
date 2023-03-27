@@ -1,6 +1,6 @@
 import threading
-import cv2
-import time
+import cv2, time, glob
+
 
 
 class FPS:
@@ -22,9 +22,32 @@ class FPS:
         return self._fps
 
 
+
+class TestImagesStream:
+
+    '''Selects images from a folder and returns them as a video stream.'''
+
+    def __init__(self, path, W, H):
+
+        self.images = sorted(glob.glob(path + '/*'))
+        self.index, self.max_index = -2, len(self.images)
+        assert self.max_index > 0, f'>> No images found in {path}'
+        self.size = (W, H)
+        print(f'>> Found {self.max_index} images in {path} ...')
+
+    def read(self):
+
+        self.index = (self.index + 1) % self.max_index
+        image = cv2.imread(self.images[self.index])
+        image = cv2.resize(image, self.size)
+        return True, image
+
+
+
 class VideoCaptureAsync:
 
     '''Class to asynchronously read frames from a video feed. See sample usage below.'''
+    '''Acknowledgement: This code is adapted from https://github.com/gilbertfrancois/video-capture-async'''
 
     def __init__(self, src=0, special_kwargs=[]):
         print(f'>> Initialising video capture: {src}')
@@ -36,7 +59,6 @@ class VideoCaptureAsync:
             raise ValueError('>> Initialisation failed to grab frame from video source.')
         self.started = False
         self.read_lock = threading.Lock()
-
 
     def start(self):
         if self.started:
@@ -67,6 +89,7 @@ class VideoCaptureAsync:
 
     def __exit__(self, exec_type, exc_value, traceback):
         self.cap.release()
+
 
 
 if __name__ == '__main__':
