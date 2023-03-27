@@ -114,10 +114,10 @@ class FaceAlignerImutils:
 
 class FaceAligner:
 
-    def __init__(self, path='artifacts/alignment/shape_predictor_68_face_landmarks.dat', size=(75, 100)):
+    def __init__(self, path='artifacts/alignment/shape_predictor_68_face_landmarks.dat', size=(90, 120)):
 
         self.predictor = dlib.shape_predictor(path)
-        self.fa = FaceAlignerImutils(self.predictor, desiredLeftEye=(0.25, 0.35),
+        self.fa = FaceAlignerImutils(self.predictor, desiredLeftEye=(0.27, 0.32),
                                      desiredFaceWidth=size[0], desiredFaceHeight=size[1])
 
     def align_crop_preprocess_faces(self, frame, bbox_list):
@@ -132,6 +132,7 @@ class FaceAligner:
             face = self.fa.align(frame, gray, dlib.rectangle(x1, y1, x2, y2))
             face = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY)
             face = face.astype(np.float32) / 255
+            # face = (face - np.mean(face)) / np.std(face)
             feature_list.append(face.flatten())
         
         return np.array(feature_list)

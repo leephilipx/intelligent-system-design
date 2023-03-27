@@ -5,7 +5,7 @@ import utils.draw, utils.helper, utils.video
 import utils.facedet, utils.facealign, utils.facerec
 
 W, H = 1280, 720
-MODE = 'lda'
+MODE = 'pca'
 
 
 
@@ -23,15 +23,15 @@ def main():
     elif MODE == 'lda':
         face_dr = utils.facerec.FisherFace('artifacts/classification/sk_pca_nclass_5.joblib',
                                            'artifacts/classification/sk_lda_nclass_5.joblib')
-    # face_rec, fr_threshold = utils.facerec.MahalanobisDistance(f'artifacts/classification/wfj_{MODE}_nclass_5.npz'), 2.0
+    face_rec, fr_threshold = utils.facerec.MahalanobisDistance(f'artifacts/classification/wfj_{MODE}_nclass_5.npz'), 2.0
     # face_rec, fr_threshold = utils.facerec.TfLiteMLP(f'artifacts/classification/keras_{MODE}_nclass_5.tflite'), 0.7
-    face_rec, fr_threshold = utils.facerec.LogisticRegression(f'artifacts/classification/logreg_{MODE}_nclass_5.joblib'), 0.7
+    # face_rec, fr_threshold = utils.facerec.LogisticRegression(f'artifacts/classification/logreg_{MODE}_nclass_5.joblib'), 0.7
     # face_rec, fr_threshold = utils.facerec.SupportVectorMachine(f'artifacts/classification/svm_{MODE}_nclass_5.joblib'), 0.0
 
     # Warmup models
     ret, frame = cap.read()
     face_det.detect_faces(frame)
-    face_rec.predict(face_dr.transform(np.zeros((1, 7500), dtype=np.float32)))
+    face_rec.predict(face_dr.transform(np.zeros((1, 90*120), dtype=np.float32)))
     print('>> Models warmed up successfully')
 
     while True:

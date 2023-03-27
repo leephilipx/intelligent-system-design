@@ -26,7 +26,7 @@ def crop_faces(frame, bbox_list):
     return [frame[y1:y2, x1:x2] for x1, y1, x2, y2 in bbox_list]
 
 
-def preprocess_to_features(face_list, size=(75, 100)):
+def preprocess_to_features(face_list, size=(90, 120)):
 
     '''Preprocess faces for face recognition'''
 

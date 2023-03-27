@@ -5,7 +5,7 @@ import utils.draw, utils.helper, utils.video
 import utils.facedet, utils.facealign, utils.facerec
 
 W, H = 1280, 720
-MODE = 'lda'
+MODE = 'pca'
 
 
 
@@ -37,13 +37,13 @@ def main(cap):
     # Warmup models
     ret, frame = cap.read()
     for fd in face_dets: fd.detect_faces(frame)
-    for fr in face_recs: fr.predict(face_dr.transform(np.zeros((1, 7500), dtype=np.float32)))
+    for fr in face_recs: fr.predict(face_dr.transform(np.zeros((1, 90*120), dtype=np.float32)))
     print('>> Models warmed up successfully')
 
     # Pre-select models and thresholds
     fd_selector, fr_selector = 1, 0
-    FR_ORIGINAL = [2.0, 0.7, 0.7, 0.0]
-    fr_threshold = [x for x in FR_ORIGINAL]
+    FD_ORIGINAL, FR_ORIGINAL = [float('inf'), 0.5], [2.0, 0.7, 0.7, float('inf')]
+    fd_threshold, fr_threshold = [x for x in FD_ORIGINAL], [x for x in FR_ORIGINAL]
 
     while True:
         
@@ -52,7 +52,7 @@ def main(cap):
         if not ret: break
 
         # Face detection, then face alignment, cropping and preprocessing
-        bbox_list = face_dets[fd_selector].detect_faces(frame, score=0.5)
+        bbox_list = face_dets[fd_selector].detect_faces(frame, score=fd_threshold[fd_selector])
         bbox_list = utils.helper.bbox_correction(bbox_list, max_w=W, max_h=H)
         features = face_align.align_crop_preprocess_faces(frame, bbox_list)
 
@@ -63,9 +63,10 @@ def main(cap):
         # Draw results onto frame and display
         utils.draw.draw_bbox(frame, bbox_list, labels)
         utils.draw.draw_text(frame, f'FPS: {fps.get():.0f}', index=0)
-        utils.draw.draw_text(frame, f'[D] Face detector: {face_dets[fd_selector].__class__.__name__}', index=1)
         utils.draw.draw_text(frame, f'[R] Face recognizer: {face_recs[fr_selector].__class__.__name__} ' + \
-                             f'(threshold={fr_threshold[fr_selector]:.2f})', index=2)
+                             f'(r={fr_threshold[fr_selector]:.2f})', index=1)
+        utils.draw.draw_text(frame, f'[D] Face detector: {face_dets[fd_selector].__class__.__name__} ' + \
+                             f'(d={fd_threshold[fd_selector]:.2f})', index=2)
         cv2.imshow('Online Face Detection and Recognition', frame)
         
         # Keyboard input
@@ -74,12 +75,17 @@ def main(cap):
             break
         elif key == ord('d'):  # Toggle face detector
             fd_selector = (fd_selector + 1) % len(face_dets)
+            fd_threshold[fd_selector] = FD_ORIGINAL[fd_selector]
         elif key == ord('r'):  # Toggle face recognizer
             fr_selector = (fr_selector + 1) % len(face_recs)
             fr_threshold[fr_selector] = FR_ORIGINAL[fr_selector]
-        elif key == ord('m'):  # Increase face recognition threshold
+        elif key == ord('l'):  # Increase face detection threshold
+            fd_threshold[fd_selector] += 0.05
+        elif key == ord('k'):  # Decrease face detection threshold
+            fd_threshold[fd_selector] -= 0.05
+        elif key == ord('p'):  # Increase face recognition threshold
             fr_threshold[fr_selector] += 0.05
-        elif key == ord('n'):  # Decrease face recognition threshold
+        elif key == ord('o'):  # Decrease face recognition threshold
             fr_threshold[fr_selector] -= 0.05
 
         fps.log()

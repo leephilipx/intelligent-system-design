@@ -43,15 +43,17 @@ def draw_bbox(frame, bbox_list):
 
 
 def main(name):
+
+    DATASET_VERSION = 2
     
-    image_list = sorted(glob.glob(f'ee4208 faces/{name}/**'))
+    image_list = sorted(glob.glob(f'v{DATASET_VERSION}_ee4208_faces/{name}/**/*.*', recursive=True))
     face_det = ResNet10SSDModified('../prototype/artifacts/detection/res10_ssd_deploy.prototxt.txt',
                                    '../prototype/artifacts/detection/res10_300x300_ssd_iter_140000.caffemodel')
     face_align = FaceAlignerModified('../prototype/artifacts/alignment/shape_predictor_68_face_landmarks.dat')
 
     for i, im in tqdm(enumerate(image_list), desc=f'cropping faces from {name}', total=len(image_list)):
 
-        dir_name = os.path.dirname(im).replace('ee4208 faces', 'output')
+        dir_name = os.path.join(f'v{DATASET_VERSION}_output', name)
         os.makedirs(dir_name, exist_ok=True)
 
         img = cv2.imread(im)
