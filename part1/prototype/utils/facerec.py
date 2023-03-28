@@ -1,7 +1,11 @@
 import joblib
 import numpy as np
-from scipy.spatial.distance import mahalanobis
+from scipy.stats import chi2
 import tensorflow as tf
+
+def squared_mahalanobis_dist(X, mean, inv_cov):
+    '''X and mean are arrays of shape (n_features, 1)'''
+    return (X - mean) @ inv_cov @ (X - mean).T
 
 
 ## Dimensionality reduction models
@@ -38,32 +42,28 @@ class FisherFace:
 
 class MahalanobisDistance:
 
-    '''Loads the Mahalanobis classifier from the given path.'''
-    '''The multiplier is used to determine the threshold for the Mahalanobis distance.'''
+    '''Loads the Mahalanobis distance classifier from the given path.'''
+    '''The confidence is used to determine the threshold using a Chi-Square distribution.'''
 
     def __init__(self, path):
         
         self._mu_fj = np.load(path)['mu_fj']
         self._VI = np.load(path)['inv_sigma_w_f']
         self._n_classes = self._mu_fj.shape[0]
+        self._n_features = self._mu_fj.shape[1]
 
-    def predict(self, X, multiplier=1.5):
+    def predict(self, X, conf=0.9999):
 
         if not len(X): return X
-        y_preds, y_dist = [], []
+        y_preds = []
+        threshold = chi2.ppf(conf, self._n_features)
 
         for i in range(len(X)):
-            dist = np.array([mahalanobis(X[i], self._mu_fj[j], self._VI) for j in range(self._n_classes)])
-            y_preds.append(np.argmin(dist))
-            y_dist.append(dist)
+            dist = np.array([squared_mahalanobis_dist(X[i], self._mu_fj[j], self._VI) for j in range(self._n_classes)])
+            min_dist_index = np.argmin(dist)
+            y_preds.append(min_dist_index if dist[min_dist_index] < threshold else -1)
 
-        y_preds = np.array(y_preds)
-        y_dist = np.array(y_dist)
-
-        indices = (y_dist.mean(axis=1) - y_dist.min(axis=1)) > multiplier*y_dist.std(axis=1)
-        y_preds[indices] = -1
-
-        return y_preds
+        return np.array(y_preds)
 
 class KerasMLP:
 
@@ -73,12 +73,12 @@ class KerasMLP:
 
         self.model = tf.keras.models.load_model(path)
 
-    def predict(self, X, score=0.5):
+    def predict(self, X, conf=0.5):
 
         if not len(X): return X
 
         y_preds = self.model.predict(X, verbose=0)
-        indices = np.max(y_preds, axis=1) < score
+        indices = np.max(y_preds, axis=1) < conf
         y_preds = np.argmax(y_preds, axis=1)
         y_preds[indices] = -1
 
@@ -95,7 +95,7 @@ class TfLiteMLP:
         self.output_details = self.interpreter.get_output_details()
         self.n_feat_tflite = self.input_details[0]['shape'][1]
 
-    def predict(self, X, score=0.5):
+    def predict(self, X, conf=0.5):
 
         if not len(X): return X
 
@@ -107,7 +107,7 @@ class TfLiteMLP:
         self.interpreter.invoke()
         y_preds = self.interpreter.get_tensor(self.output_details[0]['index'])
 
-        indices = np.max(y_preds, axis=1) < score
+        indices = np.max(y_preds, axis=1) < conf
         y_preds = np.argmax(y_preds, axis=1)
         y_preds[indices] = -1
 
@@ -120,12 +120,12 @@ class LogisticRegression:
 
         self.model = joblib.load(path)
 
-    def predict(self, X, score=0.5):
+    def predict(self, X, conf=0.5):
 
         if not len(X): return X
 
         y_preds = self.model.predict_proba(X)
-        indices = np.max(y_preds, axis=1) < score
+        indices = np.max(y_preds, axis=1) < conf
         y_preds = np.argmax(y_preds, axis=1)
         y_preds[indices] = -1
 
@@ -138,7 +138,7 @@ class SupportVectorMachine:
 
         self.model = joblib.load(path)
 
-    def predict(self, X, score=0.5):
+    def predict(self, X, conf=0.5):
 
         if not len(X): return X
         return self.model.predict(X)

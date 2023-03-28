@@ -5,7 +5,7 @@ import utils.draw, utils.helper, utils.video
 import utils.facedet, utils.facealign, utils.facerec
 
 W, H = 1280, 720
-MODE = 'pca'
+MODE = 'lda'
 
 
 
@@ -42,7 +42,8 @@ def main(cap):
 
     # Pre-select models and thresholds
     fd_selector, fr_selector = 1, 0
-    FD_ORIGINAL, FR_ORIGINAL = [float('inf'), 0.5], [2.0, 0.7, 0.7, float('inf')]
+    MAHALANOBIS_CONF = [0.90, 0.95, 0.975, 0.99, 0.995, 0.999, 0.9999, 0.99999, 0.999999, 0.9999999, 0.99999999]
+    FD_ORIGINAL, FR_ORIGINAL = [float('inf'), 0.5], [9, 0.5, 0.5, float('inf')]
     fd_threshold, fr_threshold = [x for x in FD_ORIGINAL], [x for x in FR_ORIGINAL]
 
     while True:
@@ -58,13 +59,14 @@ def main(cap):
 
         # Feature extraction, then face recognition
         features = face_dr.transform(features)
-        labels = face_recs[fr_selector].predict(features, fr_threshold[fr_selector])
+        fr_conf = MAHALANOBIS_CONF[fr_threshold[0]] if fr_selector == 0 else round(fr_threshold[fr_selector], 2)
+        labels = face_recs[fr_selector].predict(features, conf=fr_conf)
 
         # Draw results onto frame and display
         utils.draw.draw_bbox(frame, bbox_list, labels)
         utils.draw.draw_text(frame, f'FPS: {fps.get():.0f}', index=0)
         utils.draw.draw_text(frame, f'[R] Face recognizer: {face_recs[fr_selector].__class__.__name__} ' + \
-                             f'(r={fr_threshold[fr_selector]:.2f})', index=1)
+                             f'(r={fr_conf})', index=1)
         utils.draw.draw_text(frame, f'[D] Face detector: {face_dets[fd_selector].__class__.__name__} ' + \
                              f'(d={fd_threshold[fd_selector]:.2f})', index=2)
         cv2.imshow('Online Face Detection and Recognition', frame)
@@ -84,9 +86,15 @@ def main(cap):
         elif key == ord('k'):  # Decrease face detection threshold
             fd_threshold[fd_selector] -= 0.05
         elif key == ord('p'):  # Increase face recognition threshold
-            fr_threshold[fr_selector] += 0.05
+            if fr_selector == 0:
+                fr_threshold[0] = min(len(MAHALANOBIS_CONF)-1, fr_threshold[0]+1)
+            else:
+                fr_threshold[fr_selector] += 0.05
         elif key == ord('o'):  # Decrease face recognition threshold
-            fr_threshold[fr_selector] -= 0.05
+            if fr_selector == 0:
+                fr_threshold[0] = max(0, fr_threshold[0]-1)
+            else:
+                fr_threshold[fr_selector] -= 0.05
 
         fps.log()
 
