@@ -3,9 +3,10 @@ numpy
 pandas
 matplotlib
 tqdm
-opencv-python
+opencv-contrib-python
 tensorflow
 ipykernel
 seaborn
 
+# dlib
 # mtcnn
