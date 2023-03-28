@@ -1,23 +1,36 @@
 import cv2
 
-
-def draw_bbox(frame, bbox_list):
-
-    '''Draw bounding boxes on the frame, given the list of tuples (x, y, w, h)'''
-
-    for (x, y, w, h) in bbox_list:
-        cv2.rectangle(frame, (x,y), (x+w, y+h), (0,255,0), 2)
-
-    return frame
+SIZE_INFO_H = int(cv2.getTextSize('text', cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)[0][1] * 1.5)
+LABELS = ['Honey', 'Jane', 'Philip', 'Veronica', 'Wai Yeong', 'Unknown']
+BBOX_COLOUR = 5 * [(0,255,0)] + [(255,255,255)]
 
 
-def draw_text(frame, text, loc=None):
+def draw_bbox_simple(frame, bbox_list):
+
+    '''Draw bounding boxes on the frame, given the list of tuples (x1, y1, x2, y2)'''
+
+    for (x1, y1, x2, y2) in bbox_list:
+        cv2.rectangle(frame, (x1,y1), (x2,y2), (255,0,0), 2)
+
+
+def draw_bbox(frame, bbox_list, labels):
+
+    '''Draw bounding boxes on the frame, given the list of tuples (x1, y1, x2, y2)'''
+
+    for label, (x1, y1, x2, y2) in zip(labels, bbox_list):
+        cv2.rectangle(frame, (x1,y1), (x2,y2), BBOX_COLOUR[label], 2)
+        txt = LABELS[label]
+        txt_size = cv2.getTextSize(txt, cv2.FONT_HERSHEY_SIMPLEX, 0.65, 1)[0]
+        cv2.rectangle(frame, (x1,y1-txt_size[1]-8), (x1+txt_size[0]+8,y1-2), (40,40,40), -1)  
+        cv2.putText(frame, txt, (x1+4, y1-6), cv2.FONT_HERSHEY_SIMPLEX, 0.65, BBOX_COLOUR[label], 1)
+
+
+def draw_text(frame, text, loc='NW', index=0):
 
     '''Draw text on the frame, given the location of the text.'''
-    
+
     if loc == 'NW':
-        frame = cv2.putText(frame, text, (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1)
+        cv2.putText(frame, text, (10, 20+index*SIZE_INFO_H), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 3)
+        cv2.putText(frame, text, (10, 20+index*SIZE_INFO_H), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
     else:
         raise ValueError('>> Invalid location for text.')
-
-    return frame
