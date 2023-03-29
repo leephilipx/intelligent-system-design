@@ -98,6 +98,10 @@ def make_confusion_matrix(cf,
         #Do not show categories if xyticks is False
         categories=False
 
+    # if cf.shape[0] < len(categories):
+    #     cf_temp = np.zeros((len(categories),len(categories)), dtype=cf.dtype)
+    #     cf_temp[:cf.shape[0],:cf.shape[1]] = cf
+    #     cf = cf_temp
 
     # MAKE THE HEATMAP VISUALIZATION
     plt.figure(figsize=figsize)

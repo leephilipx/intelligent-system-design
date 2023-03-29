@@ -5,11 +5,10 @@ import utils.draw, utils.helper, utils.video
 import utils.facedet, utils.facealign, utils.facerec
 
 W, H = 1280, 720
-MODE = 'lda'
 
 
 
-def main(cap):
+def main(cap, MODE='lda'):
     
     print('>> Initializing and warming up models ...')
 
@@ -41,9 +40,10 @@ def main(cap):
     print('>> Models warmed up successfully')
 
     # Pre-select models and thresholds
+    bool_keypoints = False
     fd_selector, fr_selector = 1, 0
     MAHALANOBIS_CONF = [0.90, 0.95, 0.975, 0.99, 0.995, 0.999, 0.9999, 0.99999, 0.999999, 0.9999999, 0.99999999]
-    FD_ORIGINAL, FR_ORIGINAL = [float('inf'), 0.5], [9, 0.5, 0.5, float('inf')]
+    FD_ORIGINAL, FR_ORIGINAL = [float('inf'), 0.6], [6, 0.5, 0.5, float('inf')]
     fd_threshold, fr_threshold = [x for x in FD_ORIGINAL], [x for x in FR_ORIGINAL]
 
     while True:
@@ -55,7 +55,7 @@ def main(cap):
         # Face detection, then face alignment, cropping and preprocessing
         bbox_list = face_dets[fd_selector].detect_faces(frame, score=fd_threshold[fd_selector])
         bbox_list = utils.helper.bbox_correction(bbox_list, max_w=W, max_h=H)
-        features = face_align.align_crop_preprocess_faces(frame, bbox_list)
+        features, keypoints = face_align.align_crop_preprocess_faces(frame, bbox_list)
 
         # Feature extraction, then face recognition
         features = face_dr.transform(features)
@@ -64,17 +64,20 @@ def main(cap):
 
         # Draw results onto frame and display
         utils.draw.draw_bbox(frame, bbox_list, labels)
+        if bool_keypoints: utils.draw.draw_keypoints(frame, keypoints)
         utils.draw.draw_text(frame, f'FPS: {fps.get():.0f}', index=0)
-        utils.draw.draw_text(frame, f'[R] Face recognizer: {face_recs[fr_selector].__class__.__name__} ' + \
+        utils.draw.draw_text(frame, f'[R] Face recognizer: {MODE.upper()}, {face_recs[fr_selector].__class__.__name__} ' + \
                              f'(r={fr_conf})', index=1)
         utils.draw.draw_text(frame, f'[D] Face detector: {face_dets[fd_selector].__class__.__name__} ' + \
                              f'(d={fd_threshold[fd_selector]:.2f})', index=2)
-        cv2.imshow('Online Face Detection and Recognition', frame)
+        cv2.imshow('Online Face Detection and Recognition: Toggle Classifier [R], Detector [D],  Keypoints [C]', frame)
         
         # Keyboard input
         key = cv2.waitKey(1)
         if key == 27:  # Press ESC key to exit
             break
+        elif key == ord('c'):  # Toggle keypoints
+            bool_keypoints = not bool_keypoints
         elif key == ord('d'):  # Toggle face detector
             fd_selector = (fd_selector + 1) % len(face_dets)
             fd_threshold[fd_selector] = FD_ORIGINAL[fd_selector]
@@ -102,6 +105,13 @@ def main(cap):
 
 if __name__ == '__main__':
 
+    import argparse
+
+    # Parse command line arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--mode', type=str, default='lda', help='Dimensionality reduction method')
+    args = parser.parse_args()
+
     # Initialise video capture
     special_kwargs = [[cv2.CAP_PROP_FRAME_WIDTH, W], [cv2.CAP_PROP_FRAME_HEIGHT, H]]
     cap = utils.video.VideoCaptureAsync(src=0, special_kwargs=special_kwargs)
@@ -109,7 +119,7 @@ if __name__ == '__main__':
 
     # Main loop
     try:
-        main(cap=cap)
+        main(cap=cap, MODE=args.mode)
     except KeyboardInterrupt:
         print('>> Keyboard interrupt detected. Exiting ...')
     except:

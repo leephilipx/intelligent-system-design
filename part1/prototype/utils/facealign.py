@@ -105,8 +105,8 @@ class FaceAlignerImutils:
         # apply the affine transformation
         output = cv2.warpAffine(image, M, (self.desiredFaceWidth, self.desiredFaceHeight), flags=cv2.INTER_CUBIC)
 
-        # return the aligned face
-        return output
+        # return the aligned face and keypoints
+        return output, shape
 
 
 
@@ -117,22 +117,23 @@ class FaceAligner:
     def __init__(self, path='artifacts/alignment/shape_predictor_68_face_landmarks.dat', size=(90, 120)):
 
         self.predictor = dlib.shape_predictor(path)
-        self.fa = FaceAlignerImutils(self.predictor, desiredLeftEye=(0.27, 0.32),
+        self.fa = FaceAlignerImutils(self.predictor, desiredLeftEye=(0.23, 0.28),
                                      desiredFaceWidth=size[0], desiredFaceHeight=size[1])
 
     def align_crop_preprocess_faces(self, frame, bbox_list):
 
         if len(bbox_list) == 0:
-            return np.array([])
+            return np.array([]), np.array([])
 
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        feature_list = []
+        feature_list, keypoints_list = [], []
 
         for (x1, y1, x2, y2) in bbox_list:
-            face = self.fa.align(frame, gray, dlib.rectangle(x1, y1, x2, y2))
+            face, kpoints = self.fa.align(frame, gray, dlib.rectangle(x1, y1, x2, y2))
             face = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY)
             face = face.astype(np.float32) / 255
             # face = (face - np.mean(face)) / np.std(face)
             feature_list.append(face.flatten())
+            keypoints_list.append(kpoints)
         
-        return np.array(feature_list)
+        return np.array(feature_list), np.array(keypoints_list)

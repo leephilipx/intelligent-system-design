@@ -13,6 +13,15 @@ def draw_bbox_simple(frame, bbox_list):
         cv2.rectangle(frame, (x1,y1), (x2,y2), (255,0,0), 2)
 
 
+def draw_keypoints(frame, keypoints_list):
+
+    '''Draw keypoints on the frame, given the list of keypoints.'''
+
+    for keypoints in keypoints_list:
+        for (x, y) in keypoints:
+            cv2.circle(frame, (x, y), 2, (0,0,255), -1)
+
+
 def draw_bbox(frame, bbox_list, labels):
 
     '''Draw bounding boxes on the frame, given the list of tuples (x1, y1, x2, y2)'''

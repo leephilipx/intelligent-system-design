@@ -117,7 +117,7 @@ class FaceAlignerModified:
     def __init__(self, path='artifacts/landmarks/shape_predictor_68_face_landmarks.dat', size=(90, 120)):
 
         self.predictor = dlib.shape_predictor(path)
-        self.fa = FaceAlignerImutils(self.predictor, desiredLeftEye=(0.27, 0.32),
+        self.fa = FaceAlignerImutils(self.predictor, desiredLeftEye=(0.23, 0.28),
                                      desiredFaceWidth=size[0], desiredFaceHeight=size[1])
 
     def align_crop_preprocess_faces(self, frame, bbox_list):
