@@ -26,7 +26,7 @@ def crop_faces(frame, bbox_list):
     return [frame[y1:y2, x1:x2] for x1, y1, x2, y2 in bbox_list]
 
 
-def preprocess_to_features(face_list, size=(90, 120)):
+def preprocess(face_list, resize=(90, 120)):
 
     '''Preprocess faces for face recognition'''
 
@@ -37,8 +37,9 @@ def preprocess_to_features(face_list, size=(90, 120)):
 
     for face in face_list:
         face = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY)
-        face = cv2.resize(face, size)
+        if resize: face = cv2.resize(face, resize)
         face = face.astype(np.float32) / 255
+        # face = (face - face.mean()) / face.std()
         feature_list.append(face.flatten())
 
     return np.array(feature_list)

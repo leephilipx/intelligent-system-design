@@ -50,12 +50,12 @@ def main(MODE='lda'):
 
         # Draw results onto frame and display
         utils.draw.draw_bbox(frame, bbox_list, labels)
-        utils.draw.draw_text(frame, f'Test image: #{cap.index}', index=0)
-        utils.draw.draw_text(frame, f'Face recognizer: {MODE.upper()}, {face_rec.__class__.__name__} ' + \
+        utils.draw.draw_text(frame, f'FPS: 15', index=0)
+        utils.draw.draw_text(frame, f'[R] Face recognizer: {MODE.upper()}, {face_rec.__class__.__name__} ' + \
                              f'(r={fr_threshold})', index=1)
-        utils.draw.draw_text(frame, f'Face detector: {face_det.__class__.__name__} ' + \
+        utils.draw.draw_text(frame, f'[D] Face detector: {face_det.__class__.__name__} ' + \
                              f'(d={fd_threshold})', index=2)
-        cv2.imshow('Online Face Detection and Recognition [Test Mode]', frame)
+        cv2.imshow('Online Face Detection and Recognition: Toggle Classifier [R], Detector [D],  Keypoints [C]', frame)
         
         # Keyboard input
         key = cv2.waitKey(0)

@@ -120,20 +120,17 @@ class FaceAligner:
         self.fa = FaceAlignerImutils(self.predictor, desiredLeftEye=(0.23, 0.28),
                                      desiredFaceWidth=size[0], desiredFaceHeight=size[1])
 
-    def align_crop_preprocess_faces(self, frame, bbox_list):
+    def align_faces(self, frame, bbox_list):
 
         if len(bbox_list) == 0:
             return np.array([]), np.array([])
 
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        feature_list, keypoints_list = [], []
+        face_list, kp_list = [], []
 
         for (x1, y1, x2, y2) in bbox_list:
             face, kpoints = self.fa.align(frame, gray, dlib.rectangle(x1, y1, x2, y2))
-            face = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY)
-            face = face.astype(np.float32) / 255
-            # face = (face - np.mean(face)) / np.std(face)
-            feature_list.append(face.flatten())
-            keypoints_list.append(kpoints)
+            face_list.append(face)
+            kp_list.append(kpoints)
         
-        return np.array(feature_list), np.array(keypoints_list)
+        return np.array(face_list), np.array(kp_list)

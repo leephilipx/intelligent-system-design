@@ -27,7 +27,6 @@ def main(cap, MODE='lda'):
         utils.facerec.MahalanobisDistance(f'artifacts/classification/wfj_{MODE}_nclass_5.npz'),
         utils.facerec.TfLiteMLP(f'artifacts/classification/keras_{MODE}_nclass_5.tflite'),
         utils.facerec.LogisticRegression(f'artifacts/classification/logreg_{MODE}_nclass_5.joblib'),
-        utils.facerec.SupportVectorMachine(f'artifacts/classification/svm_{MODE}_nclass_5.joblib'),
     ]
 
     # Initialise FPS counter
@@ -42,8 +41,8 @@ def main(cap, MODE='lda'):
     # Pre-select models and thresholds
     bool_keypoints = False
     fd_selector, fr_selector = 1, 0
-    MAHALANOBIS_CONF = [0.90, 0.95, 0.975, 0.99, 0.995, 0.999, 0.9999, 0.99999, 0.999999, 0.9999999, 0.99999999]
-    FD_ORIGINAL, FR_ORIGINAL = [float('inf'), 0.6], [6, 0.5, 0.5, float('inf')]
+    MAHALANOBIS_CONF = [0.90, 0.95, 0.975, 0.99, 0.995, 0.999, 0.9999, 0.99999, 0.999999, 0.9999999]
+    FD_ORIGINAL, FR_ORIGINAL = [float('inf'), 0.6], [6, 0.5, 0.5]
     fd_threshold, fr_threshold = [x for x in FD_ORIGINAL], [x for x in FR_ORIGINAL]
 
     while True:
@@ -52,21 +51,23 @@ def main(cap, MODE='lda'):
         ret, frame = cap.read()
         if not ret: break
 
-        # Face detection, then face alignment, cropping and preprocessing
+        # Face detection, then face alignment and cropping
         bbox_list = face_dets[fd_selector].detect_faces(frame, score=fd_threshold[fd_selector])
         bbox_list = utils.helper.bbox_correction(bbox_list, max_w=W, max_h=H)
-        features, keypoints = face_align.align_crop_preprocess_faces(frame, bbox_list)
+        faces, keypoints = face_align.align_faces(frame, bbox_list)
 
-        # Feature extraction, then face recognition
-        features = face_dr.transform(features)
+        # Preprocessing, feature extraction, face recognition
+        features_x = utils.helper.preprocess(faces, resize=None)
+        features_f = face_dr.transform(features_x)
         fr_conf = MAHALANOBIS_CONF[fr_threshold[0]] if fr_selector == 0 else round(fr_threshold[fr_selector], 2)
-        labels = face_recs[fr_selector].predict(features, conf=fr_conf)
+        labels = face_recs[fr_selector].predict(features_f, conf=fr_conf)
 
         # Draw results onto frame and display
         utils.draw.draw_bbox(frame, bbox_list, labels)
         if bool_keypoints: utils.draw.draw_keypoints(frame, keypoints)
         utils.draw.draw_text(frame, f'FPS: {fps.get():.0f}', index=0)
-        utils.draw.draw_text(frame, f'[R] Face recognizer: {MODE.upper()}, {face_recs[fr_selector].__class__.__name__} ' + \
+        utils.draw.draw_text(frame, f'[R] Face recognizer: {MODE.upper()}, ' + \
+                              f'{face_recs[fr_selector].__class__.__name__} ' + \
                              f'(r={fr_conf})', index=1)
         utils.draw.draw_text(frame, f'[D] Face detector: {face_dets[fd_selector].__class__.__name__} ' + \
                              f'(d={fd_threshold[fd_selector]:.2f})', index=2)
