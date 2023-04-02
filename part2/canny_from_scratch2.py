@@ -125,7 +125,6 @@ def canny(image, sigma=1., low_threshold=None, high_threshold=None,
     
     # Convolve with Gaussian kernel
     Gauss_kernel1D = _gaussian_kernel1d(sigma=sigma, order=0, radius=4*sigma)
-    # Gauss_kernel2D = np.outer(Gauss_kernel1D, Gauss_kernel1D)
 
     # Convolve with derivative of Gaussian kernel
     DoG_kernel1D = np.gradient(Gauss_kernel1D)
@@ -134,10 +133,11 @@ def canny(image, sigma=1., low_threshold=None, high_threshold=None,
     DoG_kernel1D[neg_indices] = DoG_kernel1D[neg_indices] / np.abs(np.sum(DoG_kernel1D[neg_indices]))
 
     # Gradient magnitude estimation (NEW: Convolution with DoG kernel)
-    idog = ndi.convolve(smoothed, np.repeat(np.expand_dims(Gauss_kernel1D, axis=0), len(Gauss_kernel1D), axis=0), mode='nearest')
-    idog = ndi.convolve(idog, np.repeat(np.expand_dims(DoG_kernel1D, axis=0), len(DoG_kernel1D), axis=0), mode='nearest')
-    jdog = ndi.convolve(smoothed, np.repeat(np.expand_dims(Gauss_kernel1D, axis=1), len(Gauss_kernel1D), axis=1), mode='nearest')
-    jdog = ndi.convolve(jdog, np.repeat(np.expand_dims(DoG_kernel1D, axis=1), len(DoG_kernel1D), axis=1), mode='nearest')
+    image64 = image.astype(np.float64)
+    idog = ndi.convolve(image64, np.repeat(np.expand_dims(Gauss_kernel1D, axis=0), len(Gauss_kernel1D), axis=0), mode='nearest')
+    idog = ndi.convolve(idog, np.repeat(np.expand_dims(DoG_kernel1D, axis=1), len(DoG_kernel1D), axis=1), mode='nearest')
+    jdog = ndi.convolve(image64, np.repeat(np.expand_dims(Gauss_kernel1D, axis=1), len(Gauss_kernel1D), axis=1), mode='nearest')
+    jdog = ndi.convolve(jdog, np.repeat(np.expand_dims(DoG_kernel1D, axis=0), len(DoG_kernel1D), axis=0), mode='nearest')
     magnitude = np.sqrt(idog * idog + jdog * jdog)
 
     # Gradient magnitude estimation (NEW: Derivative of Gaussian)
