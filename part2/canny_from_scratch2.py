@@ -1,10 +1,12 @@
 import numpy as np
 import scipy.ndimage as ndi
+import cv2
 
 from skimage.util.dtype import dtype_limits
 from skimage._shared.filters import gaussian
 from skimage._shared.utils import _supported_float_type, check_nD
 from skimage.feature._canny_cy import _nonmaximum_suppression_bilinear
+from scipy.ndimage._filters import _gaussian_kernel1d
 
 
 def _preprocess(image, mask, sigma, mode, cval):
@@ -120,11 +122,28 @@ def canny(image, sigma=1., low_threshold=None, high_threshold=None,
 
     # Image filtering
     smoothed, eroded_mask = _preprocess(image, mask, sigma, mode, cval)
+    
+    # Convolve with Gaussian kernel
+    Gauss_kernel1D = _gaussian_kernel1d(sigma=sigma, order=0, radius=4*sigma)
+    # Gauss_kernel2D = np.outer(Gauss_kernel1D, Gauss_kernel1D)
+
+    # Convolve with derivative of Gaussian kernel
+    DoG_kernel1D = np.gradient(Gauss_kernel1D)
+    pos_indices, neg_indices = np.where(DoG_kernel1D > 0), np.where(DoG_kernel1D < 0)
+    DoG_kernel1D[pos_indices] = DoG_kernel1D[pos_indices] / np.sum(DoG_kernel1D[pos_indices])
+    DoG_kernel1D[neg_indices] = DoG_kernel1D[neg_indices] / np.abs(np.sum(DoG_kernel1D[neg_indices]))
+
+    # Gradient magnitude estimation (NEW: Convolution with DoG kernel)
+    idog = ndi.convolve(smoothed, np.repeat(np.expand_dims(Gauss_kernel1D, axis=0), len(Gauss_kernel1D), axis=0), mode='nearest')
+    idog = ndi.convolve(idog, np.repeat(np.expand_dims(DoG_kernel1D, axis=0), len(DoG_kernel1D), axis=0), mode='nearest')
+    jdog = ndi.convolve(smoothed, np.repeat(np.expand_dims(Gauss_kernel1D, axis=1), len(Gauss_kernel1D), axis=1), mode='nearest')
+    jdog = ndi.convolve(jdog, np.repeat(np.expand_dims(DoG_kernel1D, axis=1), len(DoG_kernel1D), axis=1), mode='nearest')
+    magnitude = np.sqrt(idog * idog + jdog * jdog)
 
     # Gradient magnitude estimation (NEW: Derivative of Gaussian)
-    jdog = ndi.gaussian_filter(smoothed, sigma=sigma, order=[0, 1])
-    idog = ndi.gaussian_filter(smoothed, sigma=sigma, order=[1, 0])
-    magnitude = np.sqrt(idog * idog + jdog * jdog)
+    # jdog = ndi.gaussian_filter(smoothed, sigma=sigma, order=[0, 1])
+    # idog = ndi.gaussian_filter(smoothed, sigma=sigma, order=[1, 0])
+    # magnitude = np.sqrt(idog * idog + jdog * jdog)
 
     # Gradient magnitude estimation
     # jsobel = ndi.sobel(smoothed, axis=1)
