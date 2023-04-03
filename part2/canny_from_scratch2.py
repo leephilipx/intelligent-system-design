@@ -134,10 +134,10 @@ def canny(image, sigma=1., low_threshold=None, high_threshold=None,
 
     # Gradient magnitude estimation (NEW: Convolution with DoG kernel)
     image64 = image.astype(np.float64)
-    idog = ndi.convolve(image64, np.repeat(np.expand_dims(Gauss_kernel1D, axis=0), len(Gauss_kernel1D), axis=0), mode='nearest')
-    idog = ndi.convolve(idog, np.repeat(np.expand_dims(DoG_kernel1D, axis=1), len(DoG_kernel1D), axis=1), mode='nearest')
-    jdog = ndi.convolve(image64, np.repeat(np.expand_dims(Gauss_kernel1D, axis=1), len(Gauss_kernel1D), axis=1), mode='nearest')
-    jdog = ndi.convolve(jdog, np.repeat(np.expand_dims(DoG_kernel1D, axis=0), len(DoG_kernel1D), axis=0), mode='nearest')
+    idog = ndi.convolve(image64, Gauss_kernel1D.reshape(1, -1), mode='nearest')
+    idog = ndi.convolve(idog, DoG_kernel1D.reshape(-1, 1), mode='nearest')
+    jdog = ndi.convolve(image64, Gauss_kernel1D.reshape(-1, 1), mode='nearest')
+    jdog = ndi.convolve(jdog, DoG_kernel1D.reshape(1, -1), mode='nearest')
     magnitude = np.sqrt(idog * idog + jdog * jdog)
 
     # Gradient magnitude estimation (NEW: Derivative of Gaussian)
