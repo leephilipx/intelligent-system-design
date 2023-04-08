@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import cv2
 
 
 def plot_images(images, titles, dpi=50):
@@ -11,8 +12,12 @@ def plot_images(images, titles, dpi=50):
     for i in range(n_row):
         for j in range(n_col):
             k = i * n_col + j
-            ax[k].imshow(images[i][j], cmap='gray')
-            ax[k].set_title(titles[i][j])
+            image = images[i][j]
+            if image is not None:
+                ax[k].imshow(image, cmap='gray')
+                ax[k].set_title(titles[i][j])
+            else:
+                ax[k].imshow(np.ones_like(images[0][0]), cmap='gray', vmin=0, vmax=1)
             ax[k].axis('off')
 
     plt.tight_layout()

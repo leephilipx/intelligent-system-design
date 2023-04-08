@@ -1,12 +1,12 @@
-img = imread('viz_outputs/retina2_ksize1_tavg30_172-201.bmp');
+img = imread('../viz_outputs/retina2_ksize1_tavg30_172-201.bmp');
 
 % PSF = fspecial('average', 5);
 PSF = fspecial('disk', 3);
 NSR = 0.5;
 wnr_img = deconvwnr(img, PSF, NSR);
 
-edge1 = edge(img, 'canny', [0.05 0.15], 2);
-edge2 = edge(wnr_img, 'canny', [0.02 0.15], 2);
+edge1 = edge(img, 'canny', [0.05 0.2], 2);
+edge2 = edge(wnr_img, 'canny', [0.02 0.2], 2);
 overlayed = img+uint8(edge2*255);
 imwrite(overlayed, 'good_canny_disk.bmp');
 
