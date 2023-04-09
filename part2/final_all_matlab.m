@@ -13,9 +13,11 @@ for i = 1:length(files)
     img = imread(filename_in);
     wnr_avg = deconvwnr(img, PSF_avg, NSR);
     wnr_dsk = deconvwnr(img, PSF_dsk, NSR);
-
+    
+    canny_nml = edge(img, 'canny', [0.05 0.15], 1.5);
     canny_avg = edge(wnr_avg, 'canny', [0.05 0.15], 1.5);
     canny_dsk = edge(wnr_dsk, 'canny', [0.05 0.15], 1.5);
-    save(filename_out, 'wnr_avg', 'wnr_dsk', 'canny_avg', 'canny_dsk');
+    
+    save(filename_out, 'img', 'wnr_avg', 'wnr_dsk', 'canny_nml', 'canny_avg', 'canny_dsk');
     
 end
