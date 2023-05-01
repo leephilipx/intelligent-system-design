@@ -9,24 +9,23 @@ Important notes:
 Face detection:
 - [x] Haar cascade basic code
 - [x] DL-based face det basic code
-- [ ] Benchmark haar cascade parameters on FDDB
-- [ ] Benchmark SSD on FDDB
-- [ ] Provide inference times for both methods (on batch_size=1)
+- [x] Benchmark haar cascade parameters on FDDB
+- [x] Provide inference times for both methods (on batch_size=1)
 
 Dimensionality reduction:
 - [x] PCA on Olivetti faces
-- [ ] PCA on LFW people (see comment in jupyter notebook)
-- [ ] PCA without first 3 components (ref paper)
-- [ ] Fisherface (ref paper)
+- [x] PCA on LFW people (see comment in jupyter notebook)
+- [x] PCA without first 3 components (ref paper)
+- [x] Fisherface (ref paper)
 
 Face recognition:
 - [x] Use deep learning classifier
-- [ ] AdaBoost classifier
-- [ ] SVM classifier, others?
-- [ ] Fit all models onto own dataset
+- [x] AdaBoost classifier
+- [x] SVM classifier, others?
+- [x] Fit all models onto own dataset
 
 Integration:
-- [ ] Asynchorous VideoCapture and OpenCV window
-- [ ] Axial rotation along face symmetry line (needs eye keypoints)
-- [ ] Integrate all components with labels
-- [ ] Add keyboard toggle functionality
+- [x] Asynchorous VideoCapture and OpenCV window
+- [x] Axial rotation along face symmetry line (needs eye keypoints)
+- [x] Integrate all components with labels
+- [x] Add keyboard toggle functionality
